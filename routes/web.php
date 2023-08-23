@@ -7,9 +7,15 @@ use App\Http\Controllers\{
     RoleAndPermissionController
 };
 
+Route::get('/register', fn () => view('auth.register'))->name('register');
+Route::post('/register', [UserController::class, 'userRegister'])->name('register.store');
 Route::middleware(['auth', 'web'])->group(function () {
     Route::get('/', fn () => view('dashboard'));
-    Route::get('/dashboard', fn () => view('dashboard'));
+    Route::get('/dashboard', fn () => view('dashboard'))->name('dashboard');
+    Route::get('/investment', fn () => view('investment'))->name('investment');
+    Route::get('/team', fn () => view('team'))->name('team');
+    Route::get('/detail', fn () => view('detail'))->name('detail');
+
 
     Route::get('/profile', ProfileController::class)->name('profile');
 

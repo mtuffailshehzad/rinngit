@@ -2,10 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 use App\Http\Requests\{StoreUserRequest, UpdateUserRequest};
 use App\Models\User;
 use Yajra\DataTables\Facades\DataTables;
 use Image;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
+
 
 class UserController extends Controller
 {
@@ -196,5 +202,38 @@ class UserController extends Controller
         return redirect()
             ->route('users.index')
             ->with('success', __('The user was deleted successfully.'));
+    }
+
+    public function userRegister(Request $request)
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'min:3', 'max:255'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised()
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $attr = $validator->validated();
+
+        $attr['password'] = Hash::make($request->password);
+
+        $user = User::create($attr);
+
+        $role = Role::where('name', 'client')->first(); // Adjust the role name as needed
+        $user->assignRole($role);
+        return redirect()->route('login')->with('success', 'User registered successfully');
     }
 }
